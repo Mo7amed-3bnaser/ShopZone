@@ -20,10 +20,22 @@ async function connectToMongoDB() {
     }
     
     try {
-        client = new MongoClient(process.env.MONGODB_URI);
+        const options = {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+            serverSelectionTimeoutMS: 30000,
+            socketTimeoutMS: 75000,
+            family: 4,
+            tls: true,
+            tlsInsecure: false,
+            retryWrites: true,
+            w: 'majority'
+        };
+        
+        client = new MongoClient(process.env.MONGODB_URI, options);
         await client.connect();
         db = client.db('ShopZone');
-        console.log('Connected to MongoDB Atlas');
+        console.log('Connected to MongoDB Atlas successfully');
         return true;
     } catch (error) {
         console.error('MongoDB connection error:', error);
