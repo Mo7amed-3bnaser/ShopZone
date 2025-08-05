@@ -1,7 +1,11 @@
 // Authentication Service for ShopZone
 class AuthService {
   constructor() {
-    this.baseURL = 'http://localhost:5001/api/auth';
+    // Detect if we're in production or development
+    const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+    this.baseURL = isProduction 
+      ? `${window.location.origin}/api/auth`
+      : 'http://localhost:5001/api/auth';
     this.token = localStorage.getItem('shopzone_token');
     this.user = JSON.parse(localStorage.getItem('shopzone_user') || 'null');
   }
