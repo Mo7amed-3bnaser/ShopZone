@@ -5,6 +5,7 @@
   "main": "server-atlas.js",
   "scripts": {
     "start": "node server-atlas.js",
+    "build": "echo 'No build step required'",
     "dev": "nodemon server-atlas.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

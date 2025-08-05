@@ -219,21 +219,40 @@ class AuthManager {
           <div class="auth-modal-body">
             <form id="authForm" class="auth-form">
               ${type === 'register' ? `
-                <div class="form-group">
-                  <label for="name">👤 Full Name</label>
+                <div class="form-group" data-field="name">
+                  <label for="name">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20 21V19C20 16.7909 18.2091 15 16 15H8C5.79086 15 4 16.7909 4 19V21"/>
+                      <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    Full Name
+                  </label>
                   <input type="text" id="name" name="name" placeholder="Enter your full name" required>
                   <span class="error-message" id="nameError"></span>
                 </div>
               ` : ''}
               
-              <div class="form-group">
-                <label for="email">📧 Email Address</label>
+              <div class="form-group" data-field="email">
+                <label for="email">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z"/>
+                    <polyline points="22,6 12,13 2,6"/>
+                  </svg>
+                  Email Address
+                </label>
                 <input type="email" id="email" name="email" placeholder="Enter your email address" required>
                 <span class="error-message" id="emailError"></span>
               </div>
               
-              <div class="form-group">
-                <label for="password">🔒 Password</label>
+              <div class="form-group" data-field="password">
+                <label for="password">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <circle cx="12" cy="16" r="1"/>
+                    <path d="M7 11V7C7 5.67392 7.52678 4.40215 8.46447 3.46447C9.40215 2.52678 10.6739 2 12 2C13.3261 2 14.5979 2.52678 15.5355 3.46447C16.4732 4.40215 17 5.67392 17 7V11"/>
+                  </svg>
+                  Password
+                </label>
                 <input type="password" id="password" name="password" placeholder="Enter your password" required>
                 <span class="error-message" id="passwordError"></span>
               </div>

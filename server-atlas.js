@@ -40,7 +40,7 @@ function getCollection(collectionName) {
 
 // Middleware
 app.use(cors({
-    origin: '*', // Allow all origins for now
+    origin: process.env.NODE_ENV === 'production' ? true : '*', // Allow all origins for now
     credentials: true
 }));
 
