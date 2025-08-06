@@ -348,10 +348,6 @@ class ShopZoneApp {
     document.getElementById('home-btn')?.addEventListener('click', () => this.showSection('home'));
     document.getElementById('products-btn')?.addEventListener('click', () => this.showSection('products'));
     document.getElementById('cart-btn')?.addEventListener('click', () => {
-      // Check authentication before viewing cart
-      if (!this.requireAuthentication('view your cart')) {
-        return;
-      }
       this.showSection('cart');
     });
     document.getElementById('shop-now-btn')?.addEventListener('click', () => this.showSection('products'));
