@@ -9,7 +9,7 @@ const productsData = [
     rating: 4.5,
     stock: 15,
     featured: true,
-    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+    image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
   },
   {
     id: 2,
@@ -30,7 +30,7 @@ const productsData = [
     category: "electronics",
     rating: 4.3,
     stock: 8,
-    featured: false,
+    featured: true,
     image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
   },
   {
@@ -52,7 +52,7 @@ const productsData = [
     category: "home",
     rating: 4.6,
     stock: 45,
-    featured: false,
+    featured: true,
     image: "https://images.unsplash.com/photo-1523362628745-0c100150b504?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
   },
   {
@@ -139,7 +139,7 @@ const productsData = [
     description: "Advanced fitness tracker with heart rate monitoring, GPS, and 7-day battery life. Track your health and fitness goals.",
     category: "sports",
     rating: 4.3,
-    stock: 19,
+    stock: 0, // Out of stock
     featured: true,
     image: "https://images.unsplash.com/photo-1575311373937-040b8e1fd5b6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
   },
@@ -194,7 +194,7 @@ const productsData = [
     description: "Professional-grade tennis racket with carbon fiber frame. Lightweight design with excellent power and control.",
     category: "sports",
     rating: 4.4,
-    stock: 7,
+    stock: 0, // Out of stock
     featured: false,
     image: "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
   },

@@ -7,6 +7,7 @@ class ShopZoneApp {
     this.searchQuery = '';
     this.selectedCategory = '';
     this.selectedSort = '';
+    this.isInitialized = false;
     
     this.init();
   }
@@ -31,6 +32,193 @@ class ShopZoneApp {
     setTimeout(() => {
       this.updateCartCount();
     }, 500);
+    
+    this.isInitialized = true;
+  }
+  
+  // Check if user is authenticated for protected actions
+  requireAuthentication(action = 'perform this action') {
+    const token = localStorage.getItem('shopzone_token');
+    const user = localStorage.getItem('shopzone_user');
+    
+    if (!token || !user) {
+      // Show login modal with custom message
+      this.showAuthRequiredModal(action);
+      return false;
+    }
+    
+    return true;
+  }
+  
+  // Show authentication required modal for specific actions
+  showAuthRequiredModal(action) {
+    const modalHTML = `
+      <div class="auth-required-overlay" id="authRequiredOverlay" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      ">
+        <div class="auth-required-modal" style="
+          background: var(--bg-card);
+          border-radius: 12px;
+          max-width: 400px;
+          width: 90%;
+          padding: 2rem;
+          text-align: center;
+          position: relative;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+          border: 1px solid var(--border-color);
+          transform: translateY(20px);
+          transition: transform 0.3s ease;
+        ">
+          <button onclick="app.closeAuthRequiredModal()" style="
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+          ">&times;</button>
+          
+          <h3 style="color: var(--primary-color); margin-bottom: 1rem; font-size: 1.5rem;">🔒 Login Required</h3>
+          
+          <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem;">
+            You need to sign in to <strong>${action}</strong>. Join ShopZone for a better shopping experience!
+          </p>
+          
+          <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button onclick="app.closeAuthRequiredModal(); authManager.showLogin();" style="
+              background: var(--primary-color);
+              color: white;
+              border: none;
+              padding: 0.75rem 1.5rem;
+              border-radius: 6px;
+              cursor: pointer;
+              font-weight: 600;
+              transition: all 0.2s ease;
+            ">
+              Sign In
+            </button>
+            <button onclick="app.closeAuthRequiredModal(); authManager.showRegister();" style="
+              background: var(--bg-tertiary);
+              color: var(--text-primary);
+              border: 1px solid var(--border-color);
+              padding: 0.75rem 1.5rem;
+              border-radius: 6px;
+              cursor: pointer;
+              font-weight: 600;
+              transition: all 0.2s ease;
+            ">
+              Sign Up
+            </button>
+          </div>
+          
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 1rem;">
+            Create an account to save your cart and track your orders
+          </p>
+        </div>
+      </div>
+    `;
+    
+    // Remove existing modal
+    const existing = document.getElementById('authRequiredOverlay');
+    if (existing) existing.remove();
+    
+    // Add modal
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Show with animation
+    setTimeout(() => {
+      const overlay = document.getElementById('authRequiredOverlay');
+      const modal = overlay.querySelector('.auth-required-modal');
+      if (overlay && modal) {
+        overlay.style.opacity = '1';
+        modal.style.transform = 'translateY(0)';
+      }
+    }, 10);
+  }
+  
+  // Close authentication required modal
+  closeAuthRequiredModal() {
+    const overlay = document.getElementById('authRequiredOverlay');
+    if (overlay) {
+      overlay.style.opacity = '0';
+      const modal = overlay.querySelector('.auth-required-modal');
+      if (modal) {
+        modal.style.transform = 'translateY(20px)';
+      }
+      setTimeout(() => overlay.remove(), 300);
+    }
+  }
+  
+  // Check if authentication is required
+  checkAuthenticationRequired() {
+    // Check if user is authenticated
+    const token = localStorage.getItem('shopzone_token');
+    const user = localStorage.getItem('shopzone_user');
+    
+    if (!token || !user) {
+      // User not authenticated, show login modal
+      setTimeout(() => {
+        if (window.authManager) {
+          authManager.showLogin();
+        }
+      }, 1000);
+      
+      // Hide main content until login
+      const mainContent = document.querySelector('main');
+      if (mainContent) {
+        mainContent.style.opacity = '0.3';
+        mainContent.style.pointerEvents = 'none';
+        
+        // Show authentication required message
+        const authRequiredMsg = document.createElement('div');
+        authRequiredMsg.id = 'auth-required-message';
+        authRequiredMsg.style.cssText = `
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: var(--bg-card);
+          padding: 2rem;
+          border-radius: 12px;
+          text-align: center;
+          z-index: 999;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+          border: 1px solid var(--border-color);
+        `;
+        authRequiredMsg.innerHTML = `
+          <h3 style="color: var(--primary-color); margin-bottom: 1rem;">🔒 Login Required</h3>
+          <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Please sign in to access ShopZone</p>
+          <button onclick="authManager.showLogin()" style="background: var(--primary-color); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; cursor: pointer; font-weight: 600;">
+            Sign In Now
+          </button>
+        `;
+        document.body.appendChild(authRequiredMsg);
+      }
+      
+      return false; // Authentication required, stop action
+    }
+    
+    return true; // User is authenticated, continue with action
   }
 
   // Theme Management
@@ -38,10 +226,16 @@ class ShopZoneApp {
     const savedTheme = localStorage.getItem('shopzone-theme') || 'light';
     this.setTheme(savedTheme);
     
-    // Bind theme toggle
+    // Bind desktop theme toggle (if exists)
     const themeToggle = document.getElementById('theme-toggle');
     if (themeToggle) {
       themeToggle.addEventListener('click', () => this.toggleTheme());
+    }
+    
+    // Bind mobile theme toggle
+    const mobileThemeToggle = document.getElementById('mobile-theme-toggle');
+    if (mobileThemeToggle) {
+      mobileThemeToggle.addEventListener('click', () => this.toggleTheme());
     }
   }
 
@@ -49,18 +243,28 @@ class ShopZoneApp {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('shopzone-theme', theme);
     
-    // Update theme toggle icon
-    const sunIcon = document.querySelector('.sun-icon');
-    const moonIcon = document.querySelector('.moon-icon');
+    // Update theme toggle icons (both desktop and mobile)
+    const sunIcons = document.querySelectorAll('.sun-icon');
+    const moonIcons = document.querySelectorAll('.moon-icon');
+    const themeLabel = document.querySelector('.theme-label');
     
-    if (sunIcon && moonIcon) {
-      if (theme === 'dark') {
-        sunIcon.style.display = 'none';
-        moonIcon.style.display = 'inline';
-      } else {
-        sunIcon.style.display = 'inline';
-        moonIcon.style.display = 'none';
-      }
+    if (sunIcons && moonIcons) {
+      sunIcons.forEach(sunIcon => {
+        moonIcons.forEach(moonIcon => {
+          if (theme === 'dark') {
+            sunIcon.style.display = 'none';
+            moonIcon.style.display = 'inline';
+          } else {
+            sunIcon.style.display = 'inline';
+            moonIcon.style.display = 'none';
+          }
+        });
+      });
+    }
+    
+    // Update mobile theme label
+    if (themeLabel) {
+      themeLabel.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
     }
   }
 
@@ -143,7 +347,13 @@ class ShopZoneApp {
     // Navigation buttons
     document.getElementById('home-btn')?.addEventListener('click', () => this.showSection('home'));
     document.getElementById('products-btn')?.addEventListener('click', () => this.showSection('products'));
-    document.getElementById('cart-btn')?.addEventListener('click', () => this.showSection('cart'));
+    document.getElementById('cart-btn')?.addEventListener('click', () => {
+      // Check authentication before viewing cart
+      if (!this.requireAuthentication('view your cart')) {
+        return;
+      }
+      this.showSection('cart');
+    });
     document.getElementById('shop-now-btn')?.addEventListener('click', () => this.showSection('products'));
     
     // Update active navigation state
@@ -308,7 +518,7 @@ class ShopZoneApp {
           </div>
           
           <div class="product-actions">
-            <button class="btn btn-primary add-to-cart-btn" data-product-id="${product.id}" ${isOutOfStock ? 'disabled' : ''}>
+            <button class="btn ${isOutOfStock ? 'btn-secondary out-of-stock-btn' : 'btn-primary'} add-to-cart-btn" data-product-id="${product.id}" ${isOutOfStock ? 'disabled' : ''}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <path d="M3 3H5L5.4 5M7 13H17L21 5H5.4M7 13L5.4 5M7 13L4.7 15.3C4.3 15.7 4.6 16.5 5.1 16.5H17M17 13V19C17 19.6 16.6 20 16 20H8C7.4 20 7 19.6 7 19V13H17Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -361,6 +571,12 @@ class ShopZoneApp {
     container.querySelectorAll('.add-to-cart-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
+        
+        // Check authentication before adding to cart
+        if (!this.requireAuthentication('add items to cart')) {
+          return;
+        }
+        
         const productId = parseInt(btn.dataset.productId);
         
         // Ensure cartManager is available
@@ -481,9 +697,9 @@ class ShopZoneApp {
         </div>
         
         <div class="product-stock" style="margin: 1rem 0;">
-          ${stockStatus === 'in-stock' ? `<span style="color: var(--success-color);">✓ In Stock (${product.stock} available)</span>` : ''}
-          ${stockStatus === 'low-stock' ? `<span style="color: var(--warning-color);">⚠ Low Stock (${product.stock} left)</span>` : ''}
-          ${stockStatus === 'out-of-stock' ? `<span style="color: var(--error-color);">✗ Out of Stock</span>` : ''}
+          ${stockStatus === 'in-stock' ? `<span style="color: var(--success-color);">In Stock (${product.stock} available)</span>` : ''}
+          ${stockStatus === 'low-stock' ? `<span style="color: var(--warning-color);">Low Stock (${product.stock} left)</span>` : ''}
+          ${stockStatus === 'out-of-stock' ? `<span style="color: var(--error-color);">Out of Stock</span>` : ''}
         </div>
         
         <p class="modal-product-description">${product.description}</p>
@@ -513,6 +729,11 @@ class ShopZoneApp {
     const modalAddToCart = modalBody.querySelector('#modal-add-to-cart');
     if (modalAddToCart && !isOutOfStock) {
       modalAddToCart.addEventListener('click', () => {
+        // Check authentication before adding to cart
+        if (!this.requireAuthentication('add this item to cart')) {
+          return;
+        }
+        
         if (window.cartManager) {
           window.cartManager.addToCart(productId);
           this.updateCartCount();
@@ -678,19 +899,19 @@ function showContactInfo() {
         <h4 style="color: var(--primary-color); margin-bottom: 1rem;">Get in Touch</h4>
         <div style="display: grid; gap: 1rem;">
           <div>
-            <strong>📧 Email:</strong>
+            <strong>Email:</strong>
             <p>support@shopzone.com</p>
           </div>
           <div>
-            <strong>📞 Phone:</strong>
+            <strong>Phone:</strong>
             <p>+1 (555) 123-4567</p>
           </div>
           <div>
-            <strong>🏢 Address:</strong>
+            <strong>Address:</strong>
             <p>123 Shopping Street<br>Commerce City, CC 12345</p>
           </div>
           <div>
-            <strong>🕒 Business Hours:</strong>
+            <strong>Business Hours:</strong>
             <p>Monday - Friday: 9:00 AM - 6:00 PM<br>Saturday: 10:00 AM - 4:00 PM<br>Sunday: Closed</p>
           </div>
         </div>
@@ -710,7 +931,7 @@ function showShippingInfo() {
   if (modalBody) {
     modalBody.innerHTML = `
       <div style="padding: 1rem;">
-        <h4 style="color: var(--primary-color); margin-bottom: 1rem;">🚚 Shipping Options</h4>
+        <h4 style="color: var(--primary-color); margin-bottom: 1rem;">Shipping Options</h4>
         <div style="display: grid; gap: 1.5rem;">
           <div>
             <h5>Standard Shipping (5-7 business days)</h5>
@@ -745,7 +966,7 @@ function showReturnsInfo() {
   if (modalBody) {
     modalBody.innerHTML = `
       <div style="padding: 1rem;">
-        <h4 style="color: var(--primary-color); margin-bottom: 1rem;">↩️ Return Policy</h4>
+        <h4 style="color: var(--primary-color); margin-bottom: 1rem;">Return Policy</h4>
         <div style="display: grid; gap: 1.5rem;">
           <div>
             <h5>30-Day Return Window</h5>

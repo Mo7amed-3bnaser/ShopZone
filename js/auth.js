@@ -1,6 +1,9 @@
 // Authentication Service for ShopZone
 class AuthService {
   constructor() {
+    // For demo/frontend-only mode without backend server
+    this.isDemoMode = true; // Set to false when backend is ready
+    
     // Detect if we're in production or development
     const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
     this.baseURL = isProduction 
@@ -8,10 +11,18 @@ class AuthService {
       : 'http://localhost:5001/api/auth';
     this.token = localStorage.getItem('shopzone_token');
     this.user = JSON.parse(localStorage.getItem('shopzone_user') || 'null');
+    
+    // Demo users for frontend testing - now flexible, will be populated during registration
+    this.demoUsers = [];
   }
 
   // Register new user
   async register(userData) {
+    // Demo mode - simulate registration without backend
+    if (this.isDemoMode) {
+      return this.demoRegister(userData);
+    }
+    
     try {
       const response = await fetch(`${this.baseURL}/register`, {
         method: 'POST',
@@ -28,7 +39,7 @@ class AuthService {
         return { 
           success: true, 
           user: data.user, 
-          message: `Welcome ${data.user.name}! Account created successfully! 🎊`
+          message: `Welcome ${data.user.name}! Account created successfully!`
         };
       } else {
         // Return the actual error message from server
@@ -44,9 +55,73 @@ class AuthService {
       return { success: false, message: 'Network error. Please try again.' };
     }
   }
+  
+  // Demo registration function for frontend testing
+  demoRegister(userData) {
+    const { name, email, password } = userData;
+    
+    // Basic validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return { 
+        success: false, 
+        message: 'Please enter a valid email address' 
+      };
+    }
+    
+    if (!password || password.length < 3) {
+      return { 
+        success: false, 
+        message: 'Password must be at least 3 characters long' 
+      };
+    }
+    
+    if (!name || name.trim().length < 2) {
+      return { 
+        success: false, 
+        message: 'Name must be at least 2 characters long' 
+      };
+    }
+    
+    // Check if user already exists in demo users
+    const existingUser = this.demoUsers.find(u => u.email === email);
+    
+    if (existingUser) {
+      return { 
+        success: false, 
+        message: 'Email already registered. Try logging in instead.' 
+      };
+    }
+    
+    // Create new demo user
+    const newUser = {
+      id: Date.now(),
+      email: email.trim(),
+      password: password,
+      name: name.trim()
+    };
+    
+    this.demoUsers.push(newUser);
+    
+    // Generate a demo token
+    const token = 'demo_token_' + Date.now();
+    const userResponse = { id: newUser.id, email: newUser.email, name: newUser.name };
+    
+    this.setAuthData(token, userResponse);
+    return { 
+      success: true, 
+      user: userResponse, 
+      message: `Welcome ${userResponse.name}! Account created successfully!`
+    };
+  }
 
   // Login user
   async login(credentials) {
+    // Demo mode - simulate login without backend
+    if (this.isDemoMode) {
+      return this.demoLogin(credentials);
+    }
+    
     try {
       const response = await fetch(`${this.baseURL}/login`, {
         method: 'POST',
@@ -63,7 +138,7 @@ class AuthService {
         return { 
           success: true, 
           user: data.user, 
-          message: `Welcome back ${data.user.name}! Login successful! 🎉`
+          message: `Welcome back ${data.user.name}! Login successful!`
         };
       } else {
         // Return the actual error message from server
@@ -75,6 +150,51 @@ class AuthService {
       }
       
       return { success: false, message: 'An unexpected error occurred. Please try again later.' };
+    }
+  }
+  
+  // Demo login function for frontend testing
+  demoLogin(credentials) {
+    const { email, password } = credentials;
+    
+    // Find matching demo user
+    let user = this.demoUsers.find(u => u.email === email && u.password === password);
+    
+    // If user not found in demo users, check if it's a valid email and create a temporary user
+    if (!user && email && password) {
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (emailRegex.test(email)) {
+        // Create a temporary user for any valid email
+        const tempUser = {
+          id: Date.now(),
+          email: email,
+          password: password,
+          name: email.split('@')[0] // Use the part before @ as name
+        };
+        
+        // Add to demo users for future logins
+        this.demoUsers.push(tempUser);
+        user = tempUser;
+      }
+    }
+    
+    if (user) {
+      // Generate a demo token
+      const token = 'demo_token_' + Date.now();
+      const userData = { id: user.id, email: user.email, name: user.name };
+      
+      this.setAuthData(token, userData);
+      return { 
+        success: true, 
+        user: userData, 
+        message: `Welcome back ${userData.name}! Login successful!`
+      };
+    } else {
+      return { 
+        success: false, 
+        message: 'Please enter a valid email and password to continue'
+      };
     }
   }
 
@@ -133,6 +253,17 @@ class AuthService {
     this.user = user;
     localStorage.setItem('shopzone_token', token);
     localStorage.setItem('shopzone_user', JSON.stringify(user));
+    
+    // Enable main app after successful authentication
+    this.enableAppAfterLogin();
+  }
+  
+  // Enable main application after successful login
+  enableAppAfterLogin() {
+    // Just update UI, no need to reinitialize app
+    if (window.app) {
+      window.app.updateCartCount();
+    }
   }
 
   // Clear authentication data
@@ -349,6 +480,11 @@ class AuthManager {
         }
         this.closeModal();
         this.updateUI();
+        
+        // Close any authentication required modal
+        if (window.app && typeof window.app.closeAuthRequiredModal === 'function') {
+          window.app.closeAuthRequiredModal();
+        }
         
         // Redirect or refresh cart data
         if (window.cartManager && typeof window.cartManager.syncCartWithUser === 'function') {
@@ -754,24 +890,24 @@ class AuthManager {
       <div class="modal-overlay" id="settingsModalOverlay">
         <div class="modal-container settings-modal">
           <div class="modal-header">
-            <h2>⚙️ Settings</h2>
+            <h2>Settings</h2>
             <button class="modal-close" onclick="authManager.closeSettingsModal()">×</button>
           </div>
           <div class="modal-body">
             <div class="settings-section">
-              <h3>🌐 Language & Region</h3>
+              <h3>Language & Region</h3>
               <div class="setting-item">
                 <label>Language: English</label>
               </div>
             </div>
             <div class="settings-section">
-              <h3>🔔 Notifications</h3>
+              <h3>Notifications</h3>
               <div class="setting-item">
                 <label><input type="checkbox" checked> Promotional notifications</label>
               </div>
             </div>
             <div class="settings-section">
-              <h3>🎨 Appearance</h3>
+              <h3>Appearance</h3>
               <div class="setting-item">
                 <select>
                   <option>Light</option>

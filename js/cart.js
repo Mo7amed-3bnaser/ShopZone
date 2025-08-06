@@ -11,6 +11,13 @@ class CartManager {
     this.updateCartCount();
     this.bindEvents();
   }
+  
+  // Check if user is authenticated
+  isAuthenticated() {
+    const token = localStorage.getItem('shopzone_token');
+    const user = localStorage.getItem('shopzone_user');
+    return !!token && !!user;
+  }
 
   // Load cart from localStorage
   loadCartFromStorage() {
@@ -344,6 +351,16 @@ class CartManager {
 
   // Handle checkout process
   handleCheckout() {
+    // Check authentication before checkout
+    if (!this.isAuthenticated()) {
+      if (window.app && typeof window.app.requireAuthentication === 'function') {
+        window.app.requireAuthentication('proceed to checkout');
+      } else {
+        this.showToast('Please sign in to checkout', 'error');
+      }
+      return;
+    }
+    
     if (this.cart.length === 0) {
       this.showToast('Your cart is empty', 'warning');
       return;
